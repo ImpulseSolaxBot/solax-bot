@@ -4,12 +4,10 @@ import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# Загружаем переменные окружения
-BOT_TOKEN = os.environ.get("8035038086:AAFtzYaBe7geXSkkZnW4zMzu3OpEc5QxacU")
-SOLAX_TOKEN = os.environ.get("202505131356118907804314")
-SOLAX_SN = os.environ.get("XB4050K7563064")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+SOLAX_TOKEN = os.environ.get("SOLAX_TOKEN")
+SOLAX_SN = os.environ.get("SOLAX_SN")
 
-# Функция запроса данных у SolaX
 def get_inverter_data():
     url = f"https://global.solaxcloud.com:9443/proxy/api/getRealtimeInfo.do?tokenId={SOLAX_TOKEN}&sn={SOLAX_SN}"
     try:
@@ -28,17 +26,14 @@ def get_inverter_data():
     except Exception as e:
         return {"Ошибка": str(e)}
 
-# Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Привет! Отправь /status чтобы получить данные инвертора.")
 
-# Команда /status
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = get_inverter_data()
     message = "\n".join([f"{key}: {value}" for key, value in data.items()])
     await update.message.reply_text("📊 Данные инвертора:\n" + message)
 
-# Запуск бота
 def main():
     logging.basicConfig(level=logging.INFO)
     app = ApplicationBuilder().token(BOT_TOKEN).build()
