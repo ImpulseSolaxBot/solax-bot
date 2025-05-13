@@ -12,7 +12,7 @@ import logging
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")  # Токен вашего Telegram-бота
 SOLAX_TOKEN_ID = os.environ.get("SOLAX_TOKEN_ID")  # Токен API SolaX Cloud
 SOLAX_WIFI_SN = os.environ.get("SOLAX_WIFI_SN")  # Wi-Fi серийный номер инвертора
-API_URL = "https://<URL>/api/v2/dataAccess/realtimeInfo/get"  # URL API SolaX (ЗАМЕНИТЕ <URL>!) [cite: 30]
+API_URL = "https://global.solaxcloud.com/api/v2/dataAccess/realtimeInfo/get"  # URL API SolaX (ЗАМЕНИТЕ <URL>!) [cite: 30]
 UPDATE_INTERVAL = 60  # Интервал обновления данных (в секундах)
 stop_event = Event()
 latest_data = None  # Переменная для хранения последних полученных данных
