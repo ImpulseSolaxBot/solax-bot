@@ -1,46 +1,37 @@
-import os
-import logging
 import requests
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+import json
+import time
+import schedule
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-SOLAX_TOKEN = os.environ.get("SOLAX_TOKEN")
-SOLAX_SN = os.environ.get("SOLAX_SN")
+# --- Замените эти значения на свои ---
+TOKEN_ID = "ВАШ_ТОКЕН_ID"
+SERIAL_NUMBER = "СЕРИЙНЫЙ_НОМЕР_ИНВЕРТОРА"
+API_URL = f"https://www.solaxcloud.com/proxyApp/proxy/api/getRealtimeInfo.do?tokenId={TOKEN_ID}&sn={SERIAL_NUMBER}"
+# --------------------------------------
 
-def get_inverter_data():
-    url = f"https://global.solaxcloud.com:9443/proxy/api/getRealtimeInfo.do?tokenId={SOLAX_TOKEN}&sn={SOLAX_SN}"
+def fetch_and_print_data():
+    """Получает данные с API SolaxCloud и выводит их."""
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        result = response.json()
-        if not result.get("success"):
-            return {"Ошибка": result.get("exception", "Неизвестная ошибка")}
-        data = result.get("result", {})
-        return {
-            "Мощность (Вт)": data.get("acpower", "N/A"),
-            "Сегодня (кВт·ч)": data.get("yieldtoday", "N/A"),
-            "Всего (кВт·ч)": data.get("yieldtotal", "N/A"),
-            "В сеть (Вт)": data.get("feedinpower", "N/A")
-        }
-    except Exception as e:
-        return {"Ошибка": str(e)}
+        response = requests.get(API_URL)
+        response.raise_for_status()  # Проверить на наличие ошибок в HTTP-ответе
+        data = response.json()
+        if data and data.get("success"):
+            result = data.get("result")
+            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Данные с инвертора:")
+            print(json.dumps(result, indent=4))
+            # Здесь вы можете добавить код для сохранения данных в файл или базу данных
+        else:
+            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Ошибка получения данных: {data.get('info')}")
+    except requests.exceptions.RequestException as e:
+        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Ошибка подключения: {e}")
+    except json.JSONDecodeError:
+        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Ошибка декодирования JSON")
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Привет! Отправь /status чтобы получить данные инвертора.")
-
-async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    data = get_inverter_data()
-    message = "\n".join([f"{key}: {value}" for key, value in data.items()])
-    await update.message.reply_text("📊 Данные инвертора:\n" + message)
-
-def main():
-    logging.basicConfig(level=logging.INFO)
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("status", status))
-    print("Бот запущен")
-    app.run_polling()
+# Запланировать выполнение задачи (например, каждую минуту)
+schedule.every(1).minutes.do(fetch_and_print_data)
 
 if __name__ == "__main__":
-    main()
+    print("Бот Solax запущен. Получение данных каждые 60 секунд...")
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
