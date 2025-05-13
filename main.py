@@ -86,7 +86,7 @@ def main():
     scheduler_thread.start()  # Запускаем поток
 
     # Создаем Updater и передаем токен бота
-    updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)  # или updater = Updater(TELEGRAM_BOT_TOKEN)
+    updater = Updater(TELEGRAM_BOT_TOKEN)  # или updater = Updater(TELEGRAM_BOT_TOKEN)
 
     # Получаем диспетчера для регистрации обработчиков
     dp = updater.dispatcher
